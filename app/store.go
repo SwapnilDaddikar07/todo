@@ -1,9 +1,11 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
 	"time"
 )
 
@@ -19,7 +21,19 @@ type DefaultStore struct {
 }
 
 func NewDefaultStore() (DefaultStore, error) {
-	db, err := sqlx.Open("sqlite3", "app/data/todos.db")
+	homeDir, _ := os.UserHomeDir()
+	dbPath := fmt.Sprintf("%s/.todos.db", homeDir)
+
+	_, err := os.Stat(dbPath)
+	if errors.Is(err, os.ErrNotExist) {
+		file, createErr := os.Create(dbPath)
+		if createErr != nil {
+			return DefaultStore{}, fmt.Errorf("could not create db in home dir %v", createErr)
+		}
+		file.Close()
+	}
+
+	db, err := sqlx.Open("sqlite3", dbPath)
 	if err != nil {
 		fmt.Printf("error opening db %v", err)
 		return DefaultStore{}, err
