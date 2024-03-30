@@ -16,7 +16,7 @@ func NewView(store Store) View {
 
 func (v View) Build() error {
 	app := tview.NewApplication()
-	var priority string
+	priority := "High"
 
 	textArea := tview.NewTextArea().
 		SetPlaceholder("Describe your task...").
@@ -99,12 +99,6 @@ func (v View) Build() error {
 		Expansion: 1,
 		Color:     tcell.ColorBlue,
 	})
-	taskList.SetCell(0, 3, &tview.TableCell{
-		Text:      "Created at",
-		Align:     tview.AlignCenter,
-		Expansion: 1,
-		Color:     tcell.ColorBlue,
-	})
 
 	allTodos, err := v.store.GetAll()
 	if err != nil {
@@ -126,12 +120,6 @@ func (v View) Build() error {
 		})
 		taskList.SetCell(index+1, 2, &tview.TableCell{
 			Text:      string(todo.Status),
-			Align:     tview.AlignCenter,
-			Expansion: 1,
-			Color:     tcell.ColorBlue,
-		})
-		taskList.SetCell(index+1, 3, &tview.TableCell{
-			Text:      todo.CreatedAt.String(),
 			Align:     tview.AlignCenter,
 			Expansion: 1,
 			Color:     tcell.ColorBlue,
