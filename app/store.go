@@ -52,7 +52,7 @@ func NewDefaultStore() (DefaultStore, error) {
 }
 
 func (d DefaultStore) Add(task string, priority string) (Todo, error) {
-	_, err := d.db.Exec(
+	result, err := d.db.Exec(
 		`INSERT INTO todos (task, status, priority) VALUES (?, ?, ?)`,
 		task, StatusPending, priority)
 	if err != nil {
@@ -60,7 +60,14 @@ func (d DefaultStore) Add(task string, priority string) (Todo, error) {
 		return Todo{}, err
 	}
 
-	return Todo{}, nil
+	taskId, _ := result.LastInsertId()
+
+	return Todo{
+		ID:       int(taskId),
+		Task:     task,
+		Status:   StatusPending,
+		Priority: priority,
+	}, nil
 }
 
 func (d DefaultStore) Remove(todoID int) error {

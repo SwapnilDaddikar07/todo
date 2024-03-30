@@ -16,6 +16,17 @@ func NewView(store Store) View {
 
 func (v View) Build() error {
 	app := tview.NewApplication()
+
+	allTodos, err := v.store.GetAll()
+	if err != nil {
+		return err
+	}
+
+	taskTable := tview.NewTable().SetBorders(true)
+	taskTable.
+		SetBorder(true).
+		SetTitle("All tasks")
+
 	priority := "High"
 
 	textArea := tview.NewTextArea().
@@ -41,7 +52,28 @@ func (v View) Build() error {
 		SetBackgroundColorActivated(tcell.ColorDarkGreen).
 		SetLabelColorActivated(tcell.ColorWhite).
 		SetSelectedFunc(func() {
-			_, dbErr := v.store.Add(textArea.GetText(), priority)
+			todo, dbErr := v.store.Add(textArea.GetText(), priority)
+			allTodos = append(allTodos, todo)
+
+			taskTable.SetCell(len(allTodos), 0, &tview.TableCell{
+				Text:      todo.Priority,
+				Align:     tview.AlignCenter,
+				Expansion: 1,
+			})
+			taskTable.SetCell(len(allTodos), 1, &tview.TableCell{
+				Text:      todo.Task,
+				Align:     tview.AlignCenter,
+				Expansion: 1,
+			})
+			taskTable.SetCell(len(allTodos), 2, &tview.TableCell{
+				Text:      string(todo.Status),
+				Align:     tview.AlignCenter,
+				Expansion: 1,
+				Color:     tcell.ColorRed,
+			})
+
+			textArea.SetText("", true)
+
 			fmt.Printf("error creating todo %v", dbErr)
 		})
 
@@ -75,16 +107,6 @@ func (v View) Build() error {
 		AddItem(createTaskFlex, 0, 3, true).
 		AddItem(priorityList, 0, 1, false).
 		SetDirection(tview.FlexRow)
-
-	allTodos, err := v.store.GetAll()
-	if err != nil {
-		return err
-	}
-
-	taskTable := tview.NewTable().SetBorders(true)
-	taskTable.
-		SetBorder(true).
-		SetTitle("All tasks")
 
 	taskTable.SetCell(0, 0, &tview.TableCell{
 		Text:          "Priority",
