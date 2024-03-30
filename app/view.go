@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"strings"
 )
 
 type View struct {
@@ -172,9 +173,31 @@ func (v View) Build() error {
 		})
 	}
 
+	usageDirection := tview.NewTextView()
+	m := "Use your mouse to switch between different sections of the app"
+	tln := fmt.Sprintf("%s%s To navigate up/down the task list", string(tcell.RuneUArrow), string(tcell.RuneDArrow))
+	sl := fmt.Sprintf("Press Enter to toggle task between done/pending after selecting a row")
+
+	sb := strings.Builder{}
+	sb.WriteString(m)
+	sb.WriteString("\n")
+	sb.WriteString(tln)
+	sb.WriteString("\n")
+	sb.WriteString(sl)
+
+	usageDirection.SetText(sb.String())
+	usageDirection.
+		SetBorder(true).
+		SetTitle("Usage details")
+
+	rightFlex := tview.NewFlex().
+		AddItem(taskTable, 0, 10, false).
+		AddItem(usageDirection, 0, 1, false).
+		SetDirection(tview.FlexRow)
+
 	mainOuterFlex := tview.NewFlex().
 		AddItem(leftFlex, 0, 1, true).
-		AddItem(taskTable, 0, 4, false).
+		AddItem(rightFlex, 0, 4, false).
 		SetDirection(tview.FlexColumn)
 
 	if err := app.SetRoot(mainOuterFlex, true).SetFocus(mainOuterFlex).EnableMouse(true).Run(); err != nil {
