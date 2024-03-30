@@ -53,6 +53,10 @@ func (v View) Build() error {
 		SetBackgroundColorActivated(tcell.ColorDarkGreen).
 		SetLabelColorActivated(tcell.ColorWhite).
 		SetSelectedFunc(func() {
+			if strings.TrimSpace(textArea.GetText()) == "" {
+				return
+			}
+
 			todo, dbErr := v.store.Add(textArea.GetText(), priority)
 			allTodos = append(allTodos, todo)
 
@@ -174,16 +178,19 @@ func (v View) Build() error {
 	}
 
 	usageDirection := tview.NewTextView()
-	m := "Use your mouse to switch between different sections of the app"
-	tln := fmt.Sprintf("%s%s To navigate up/down the task list", string(tcell.RuneUArrow), string(tcell.RuneDArrow))
-	sl := fmt.Sprintf("Press Enter to toggle task between done/pending after selecting a row")
+	mouse := "Use your mouse to switch between different sections of the app"
+	navigate := fmt.Sprintf("%s%s To navigate up/down the task list", string(tcell.RuneUArrow), string(tcell.RuneDArrow))
+	toggle := fmt.Sprintf("Press Enter to toggle task between done/pending after selecting a row")
+	quit := fmt.Sprintf("Press %s+%s to exit the app", "ctrl", "c")
 
 	sb := strings.Builder{}
-	sb.WriteString(m)
+	sb.WriteString(mouse)
 	sb.WriteString("\n")
-	sb.WriteString(tln)
+	sb.WriteString(navigate)
 	sb.WriteString("\n")
-	sb.WriteString(sl)
+	sb.WriteString(toggle)
+	sb.WriteString("\n")
+	sb.WriteString(quit)
 
 	usageDirection.SetText(sb.String())
 	usageDirection.
@@ -191,8 +198,8 @@ func (v View) Build() error {
 		SetTitle("Usage details")
 
 	rightFlex := tview.NewFlex().
-		AddItem(taskTable, 0, 10, false).
-		AddItem(usageDirection, 0, 1, false).
+		AddItem(taskTable, 0, 8, false).
+		AddItem(usageDirection, 0, 2, false).
 		SetDirection(tview.FlexRow)
 
 	mainOuterFlex := tview.NewFlex().
