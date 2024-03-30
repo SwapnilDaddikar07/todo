@@ -87,59 +87,66 @@ func (v View) Build() error {
 		SetTitle("All tasks")
 
 	taskTable.SetCell(0, 0, &tview.TableCell{
-		Text:      "Priority",
-		Align:     tview.AlignCenter,
-		Expansion: 1,
-		Color:     tcell.ColorWhite,
+		Text:          "Priority",
+		Align:         tview.AlignCenter,
+		Expansion:     1,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
 	})
 	taskTable.SetCell(0, 1, &tview.TableCell{
-		Text:      "Task",
-		Align:     tview.AlignCenter,
-		Expansion: 4,
-		Color:     tcell.ColorWhite,
+		Text:          "Task",
+		Align:         tview.AlignCenter,
+		Expansion:     4,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
 	})
 	taskTable.SetCell(0, 2, &tview.TableCell{
-		Text:      "Status",
-		Align:     tview.AlignCenter,
-		Expansion: 1,
-		Color:     tcell.ColorWhite,
-	}).SetDoneFunc(func(key tcell.Key) {
-
+		Text:          "Status",
+		Align:         tview.AlignCenter,
+		Expansion:     1,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
 	}).SetSelectedFunc(func(row, column int) {
 		currentStatus := taskTable.GetCell(row, 2).Text
 		var newStatus Status
+		var color tcell.Color
 
 		if currentStatus == string(StatusPending) {
 			newStatus = StatusDone
+			color = tcell.ColorGreen
 		} else {
 			newStatus = StatusPending
+			color = tcell.ColorRed
 		}
 		task := allTodos[row-1]
 		_ = v.store.Update(task.ID, newStatus)
 
-		taskTable.GetCell(row, 2).SetText(string(newStatus))
+		taskTable.GetCell(row, 2).SetText(string(newStatus)).SetTextColor(color)
 	}).
 		SetSelectable(true, false).
 		Select(1, 0)
 
 	for index, todo := range allTodos {
+		color := tcell.ColorRed
+		if todo.Status == StatusDone {
+			color = tcell.ColorGreen
+		}
+
 		taskTable.SetCell(index+1, 0, &tview.TableCell{
 			Text:      todo.Priority,
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorWhite,
 		})
 		taskTable.SetCell(index+1, 1, &tview.TableCell{
 			Text:      todo.Task,
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorWhite,
 		})
 		taskTable.SetCell(index+1, 2, &tview.TableCell{
 			Text:      string(todo.Status),
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorWhite,
+			Color:     color,
 		})
 	}
 
