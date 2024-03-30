@@ -14,6 +14,7 @@ type Store interface {
 	Remove(todoID int) error
 	Done(todoID int) error
 	GetAll() ([]Todo, error)
+	Update(taskID int, status Status) error
 }
 
 type DefaultStore struct {
@@ -75,8 +76,20 @@ func (d DefaultStore) Remove(todoID int) error {
 
 func (d DefaultStore) Done(todoID int) error {
 	_, err := d.db.Query(
-		`UPDATE todos SET status = ? AND updated_at = ? WHERE id = ?`,
+		`UPDATE todos SET status = ? , updated_at = ? WHERE id = ?`,
 		StatusDone, time.Now(), todoID)
+	if err != nil {
+		fmt.Printf("error updating status %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (d DefaultStore) Update(todoID int, status Status) error {
+	_, err := d.db.Exec(
+		`UPDATE todos SET status = ? , updated_at = ? WHERE id = ?`,
+		string(status), time.Now(), todoID)
 	if err != nil {
 		fmt.Printf("error updating status %v", err)
 		return err

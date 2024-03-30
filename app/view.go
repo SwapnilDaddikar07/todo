@@ -76,59 +76,76 @@ func (v View) Build() error {
 		AddItem(priorityList, 0, 1, false).
 		SetDirection(tview.FlexRow)
 
-	taskList := tview.NewTable().SetBorders(true)
-	taskList.
-		SetBorder(true).
-		SetTitle("All tasks")
-
-	taskList.SetCell(0, 0, &tview.TableCell{
-		Text:      "Priority",
-		Align:     tview.AlignCenter,
-		Expansion: 1,
-		Color:     tcell.ColorBlue,
-	})
-	taskList.SetCell(0, 1, &tview.TableCell{
-		Text:      "Task",
-		Align:     tview.AlignCenter,
-		Expansion: 4,
-		Color:     tcell.ColorBlue,
-	})
-	taskList.SetCell(0, 2, &tview.TableCell{
-		Text:      "Status",
-		Align:     tview.AlignCenter,
-		Expansion: 1,
-		Color:     tcell.ColorBlue,
-	})
-
 	allTodos, err := v.store.GetAll()
 	if err != nil {
 		return err
 	}
 
+	taskTable := tview.NewTable().SetBorders(true)
+	taskTable.
+		SetBorder(true).
+		SetTitle("All tasks")
+
+	taskTable.SetCell(0, 0, &tview.TableCell{
+		Text:      "Priority",
+		Align:     tview.AlignCenter,
+		Expansion: 1,
+		Color:     tcell.ColorWhite,
+	})
+	taskTable.SetCell(0, 1, &tview.TableCell{
+		Text:      "Task",
+		Align:     tview.AlignCenter,
+		Expansion: 4,
+		Color:     tcell.ColorWhite,
+	})
+	taskTable.SetCell(0, 2, &tview.TableCell{
+		Text:      "Status",
+		Align:     tview.AlignCenter,
+		Expansion: 1,
+		Color:     tcell.ColorWhite,
+	}).SetDoneFunc(func(key tcell.Key) {
+
+	}).SetSelectedFunc(func(row, column int) {
+		currentStatus := taskTable.GetCell(row, 2).Text
+		var newStatus Status
+
+		if currentStatus == string(StatusPending) {
+			newStatus = StatusDone
+		} else {
+			newStatus = StatusPending
+		}
+		task := allTodos[row-1]
+		_ = v.store.Update(task.ID, newStatus)
+
+		taskTable.GetCell(row, 2).SetText(string(newStatus))
+	}).
+		SetSelectable(true, false).
+		Select(1, 0)
+
 	for index, todo := range allTodos {
-		taskList.SetCell(index+1, 0, &tview.TableCell{
+		taskTable.SetCell(index+1, 0, &tview.TableCell{
 			Text:      todo.Priority,
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorBlue,
+			Color:     tcell.ColorWhite,
 		})
-		taskList.SetCell(index+1, 1, &tview.TableCell{
+		taskTable.SetCell(index+1, 1, &tview.TableCell{
 			Text:      todo.Task,
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorBlue,
+			Color:     tcell.ColorWhite,
 		})
-		taskList.SetCell(index+1, 2, &tview.TableCell{
+		taskTable.SetCell(index+1, 2, &tview.TableCell{
 			Text:      string(todo.Status),
 			Align:     tview.AlignCenter,
 			Expansion: 1,
-			Color:     tcell.ColorBlue,
+			Color:     tcell.ColorWhite,
 		})
 	}
 
 	mainOuterFlex := tview.NewFlex().
 		AddItem(leftFlex, 0, 1, true).
-		AddItem(taskList, 0, 4, false).
+		AddItem(taskTable, 0, 4, false).
 		SetDirection(tview.FlexColumn)
 
 	if err := app.SetRoot(mainOuterFlex, true).SetFocus(mainOuterFlex).EnableMouse(true).Run(); err != nil {
