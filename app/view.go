@@ -58,24 +58,9 @@ func (v View) Build() error {
 			}
 
 			todo, dbErr := v.store.Add(textArea.GetText(), priority)
-			allTodos = append(allTodos, todo)
+			allTodos = append([]Todo{todo}, allTodos...)
 
-			taskTable.SetCell(len(allTodos), 0, &tview.TableCell{
-				Text:      todo.Priority,
-				Align:     tview.AlignCenter,
-				Expansion: 1,
-			})
-			taskTable.SetCell(len(allTodos), 1, &tview.TableCell{
-				Text:      todo.Task,
-				Align:     tview.AlignCenter,
-				Expansion: 1,
-			})
-			taskTable.SetCell(len(allTodos), 2, &tview.TableCell{
-				Text:      string(todo.Status),
-				Align:     tview.AlignCenter,
-				Expansion: 1,
-				Color:     tcell.ColorRed,
-			})
+			renderTableRows(taskTable, allTodos, "All")
 
 			textArea.SetText("", true)
 

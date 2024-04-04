@@ -108,7 +108,7 @@ func (d DefaultStore) Update(todoID int, status Status) error {
 func (d DefaultStore) GetAll() ([]Todo, error) {
 	todos := make([]Todo, 0)
 
-	dbErr := d.db.Select(&todos, "SELECT * FROM todos")
+	dbErr := d.db.Select(&todos, "SELECT * FROM todos ORDER BY created_at DESC")
 	if dbErr != nil {
 		fmt.Printf("error fetching todos from db %v", dbErr)
 		return []Todo{}, dbErr
