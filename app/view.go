@@ -97,10 +97,18 @@ func (v View) Build() error {
 		SetTitle("New")
 
 	priorityList := tview.NewList().ShowSecondaryText(false).
-		AddItem("All", "", 0, nil).
-		AddItem("High", "", 0, nil).
-		AddItem("Medium", "", 0, nil).
-		AddItem("Low", "", 0, nil).
+		AddItem("All", "", 0, func() {
+			renderTableRows(taskTable, allTodos, "All")
+		}).
+		AddItem("High", "", 0, func() {
+			renderTableRows(taskTable, allTodos, "High")
+		}).
+		AddItem("Medium", "", 0, func() {
+			renderTableRows(taskTable, allTodos, "Medium")
+		}).
+		AddItem("Low", "", 0, func() {
+			renderTableRows(taskTable, allTodos, "Low")
+		}).
 		SetCurrentItem(0).
 		SetHighlightFullLine(true).
 		SetMainTextStyle(tcell.Style{}.Bold(true))
@@ -113,27 +121,7 @@ func (v View) Build() error {
 		AddItem(priorityList, 0, 1, false).
 		SetDirection(tview.FlexRow)
 
-	taskTable.SetCell(0, 0, &tview.TableCell{
-		Text:          "Priority",
-		Align:         tview.AlignCenter,
-		Expansion:     1,
-		Color:         tcell.ColorWhite,
-		NotSelectable: true,
-	})
-	taskTable.SetCell(0, 1, &tview.TableCell{
-		Text:          "Task",
-		Align:         tview.AlignCenter,
-		Expansion:     4,
-		Color:         tcell.ColorWhite,
-		NotSelectable: true,
-	})
-	taskTable.SetCell(0, 2, &tview.TableCell{
-		Text:          "Status",
-		Align:         tview.AlignCenter,
-		Expansion:     1,
-		Color:         tcell.ColorWhite,
-		NotSelectable: true,
-	}).SetSelectedFunc(func(row, column int) {
+	taskTable.SetSelectedFunc(func(row, column int) {
 		currentStatus := taskTable.GetCell(row, 2).Text
 		var newStatus Status
 		var color tcell.Color
@@ -146,6 +134,9 @@ func (v View) Build() error {
 			color = tcell.ColorRed
 		}
 		task := allTodos[row-1]
+		(&task).Status = newStatus
+		allTodos[row-1] = task
+
 		_ = v.store.Update(task.ID, newStatus)
 
 		taskTable.GetCell(row, 2).SetText(string(newStatus)).SetTextColor(color)
@@ -153,29 +144,7 @@ func (v View) Build() error {
 		SetSelectable(true, false).
 		Select(1, 0)
 
-	for index, todo := range allTodos {
-		color := tcell.ColorRed
-		if todo.Status == StatusDone {
-			color = tcell.ColorGreen
-		}
-
-		taskTable.SetCell(index+1, 0, &tview.TableCell{
-			Text:      todo.Priority,
-			Align:     tview.AlignCenter,
-			Expansion: 1,
-		})
-		taskTable.SetCell(index+1, 1, &tview.TableCell{
-			Text:      todo.Task,
-			Align:     tview.AlignCenter,
-			Expansion: 1,
-		})
-		taskTable.SetCell(index+1, 2, &tview.TableCell{
-			Text:      string(todo.Status),
-			Align:     tview.AlignCenter,
-			Expansion: 1,
-			Color:     color,
-		})
-	}
+	renderTableRows(taskTable, allTodos, "All")
 
 	usageDirection := tview.NewTextView()
 	mouse := "Use your mouse to switch between different sections of the app"
@@ -212,4 +181,61 @@ func (v View) Build() error {
 	}
 
 	return nil
+}
+
+func renderTableRows(taskTable *tview.Table, todos []Todo, priority string) {
+	taskTable.Clear()
+
+	taskTable.SetCell(0, 0, &tview.TableCell{
+		Text:          "Priority",
+		Align:         tview.AlignCenter,
+		Expansion:     1,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
+	})
+	taskTable.SetCell(0, 1, &tview.TableCell{
+		Text:          "Task",
+		Align:         tview.AlignCenter,
+		Expansion:     4,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
+	})
+	taskTable.SetCell(0, 2, &tview.TableCell{
+		Text:          "Status",
+		Align:         tview.AlignCenter,
+		Expansion:     1,
+		Color:         tcell.ColorWhite,
+		NotSelectable: true,
+	})
+
+	rowIndex := 1
+
+	for _, todo := range todos {
+		if priority != "All" && todo.Priority != priority {
+			continue
+		}
+
+		color := tcell.ColorRed
+		if todo.Status == StatusDone {
+			color = tcell.ColorGreen
+		}
+
+		taskTable.SetCell(rowIndex, 0, &tview.TableCell{
+			Text:      todo.Priority,
+			Align:     tview.AlignCenter,
+			Expansion: 1,
+		})
+		taskTable.SetCell(rowIndex, 1, &tview.TableCell{
+			Text:      todo.Task,
+			Align:     tview.AlignCenter,
+			Expansion: 1,
+		})
+		taskTable.SetCell(rowIndex, 2, &tview.TableCell{
+			Text:      string(todo.Status),
+			Align:     tview.AlignCenter,
+			Expansion: 1,
+			Color:     color,
+		})
+		rowIndex++
+	}
 }
