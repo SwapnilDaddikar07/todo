@@ -8,8 +8,7 @@ How to use -
 
 
 Upcoming features -
-1. Better UI
-2. Filtering by priority
-3. Delete all tasks.
-4. Delete specific task.
-5. OS notification when the deadline is near.
+1. UI upgrades
+2. Delete all tasks.
+3. Delete specific task.
+4. OS notification when the deadline is near.
