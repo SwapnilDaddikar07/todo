@@ -1,4 +1,4 @@
-A simple TODO app to track and manage tasks written in Go.
+A simple TODO app written in Go to help track and manage tasks.
 
 How to use -
 1. go install github.com/Swapnildaddikar07/todo@latest
